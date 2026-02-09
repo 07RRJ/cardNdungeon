@@ -1,5 +1,6 @@
 import pygame, os, sys
 from pytmx.util_pygame import load_pygame
+from time import sleep
 
 # ----------------------------
 # SETUP
