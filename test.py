@@ -7,19 +7,78 @@ system("cls")
 # BASE
 # ======================================
 
-abilities = ["ATTACK", "HEAL", "BLOCK"]
+class Player:
+    MAX_HP = 10
+    HP = 10
+    STR = 1 
+    HEAL = 2
+    DEF = 0
+    BLOCK = 3
+    STAMINA = 0
+    ABILITIES = ["ATTACK", "HEAL", "BLOCK"]
+
+    def Stats(self):
+        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), STR: ({self.STR}), HEAL ({self.HEAL}), BLOCK ({self.DEF})")
+    
+    def Alive(self):
+        if self.HP <= 0:
+            print("you died")
+
+    def Move(self):
+        for idx, move in enumerate(self.ABILITIES, 1):
+            print(idx, move)
+        move = self.ABILITIES[Limit("your move: ", 0, len(self.ABILITIES) + 1) - 1]
+        print(f"you chose: {move}")
+        if move == "ATTACK":
+            enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies)}): ", 0, len(enemies) + 1) - 1
+            self.Attack(enemies[enemyToAttack])
+            if enemies[enemyToAttack].HP <= 0:
+                enemies.pop(enemyToAttack)
+        elif move == "HEAL":
+            if self.HP != self.MAX_HP and self.HP + self.HEAL < self.MAX_HP:
+                self.HP += self.HEAL
+            else:
+                self.HP = self.MAX_HP
+        elif move == "BLOCK":
+            self.DEF += self.BLOCK
+
+    def Attack(self, enemy):
+        if enemy.DEF:
+            enemy.DEF -= self.STR
+            if enemy.DEF < 0:
+                enemy.HP -= enemy.DEF
+                enemy.DEF = 0
+        else:
+            enemy.HP -= self.STR
+player = Player()
 
 class Slime:
-    MAX_HP = 10 
-    HP =  10
+    TYPE = "slime"
+    MAX_HP = 5
+    HP = 5
     STR = 1
-    ABILITIES = ["ATTACK"]
+    HEAL = 0
+    DEF = 0
+    BLOCK = 0
+    ABILITIES = ["ATTACK", "PASS", "PASS"]
+
+    def alive(self):
+        if self.HP <= 0:
+            print("slime died")
+    
+    def Attack(self, enemy):
+        if enemy.DEF:
+            enemy.DEF -= self.STR
+            if enemy.DEF < 0:
+                enemy.HP -= enemy.DEF
+                enemy.DEF = 0
+        else:
+            enemy.HP -= self.STR
 
 # ======================================
 # INIT
 # ======================================
 
-player = {"MAX_HP": 10, "HP": 10, "STR": 1, "REGEN": 1, "DEFENCE": 1, "ABILITIES": ["ATTACK", "HEAL", "BLOCK"]}
 
 enemeisPerFloor = [[1, 1, 1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 
@@ -27,36 +86,48 @@ def generate_enemies(floor):
     xEnemies = rng.choice(enemeisPerFloor[floor])
     enemies = []
     for i in range(xEnemies):
-        slime = Slime
+        slime = Slime()
         enemies.append(slime)
     return enemies
 
-enemies = generate_enemies(2)
-
-
-def Attack(attack, enemyHp):
-    return enemyHp - attack
 
 def Limit(question, Min, Max):
     while True:
-        value = int(input(question))
-        if value > Min:
-            if value < Max:
-                return value
+        try:
+            value = int(input(question))
+            if value > Min:
+                if value < Max:
+                    return value
+        except:
+            pass
 
 def GetEnemyStats():
     stats = []
     for idx, enemy in enumerate(enemies):
-        stats.append(f"({idx + 1}), HP: ({enemy.MAX_HP}/{enemy.HP}), STR: {enemy.STR}")
+        stats.append(f"({idx + 1}){enemy.TYPE}, HP: ({enemy.HP}/{enemy.MAX_HP}), STR: {enemy.STR}")
     print("Enemies:")
     for enemy in stats:
         print(enemy)
 
+def playFloor(floor):
+    player.DEF = 0
+    while True:
+        if enemies:
+            print(f"Floor {floor + 1}")
+            GetEnemyStats()
+            player.Stats()
+            player.Move()
+
+            for enemy in enemies:
+                enemyMove = rng.choice(enemy.ABILITIES)
+                if enemyMove == "ATTACK":
+                    enemy.Attack(player)
+
+            system("cls")
+        else:
+            break
+
 while True:
-    GetEnemyStats()
-    print(f"Player:\nHP: ({player['MAX_HP']}/{player['HP']}), STR: ({player['STR']}), REGEN ({player['REGEN']})")
-    for idx, move in enumerate(player["ABILITIES"], 1):
-        print(idx, move)
-    move = player["ABILITIES"][Limit("your move: ", 0, len(player["ABILITIES"]) + 1) - 1]
-    system("cls")
-    print(f"you chose: {move}")
+    for floor in range(5):
+        enemies = generate_enemies(floor)
+        playFloor(floor)
