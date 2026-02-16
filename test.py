@@ -1,5 +1,6 @@
 from os import system
 import random as rng
+from msvcrt import getwch
 
 system("cls")
 
@@ -10,15 +11,18 @@ system("cls")
 class Player:
     MAX_HP = 10
     HP = 10
-    STR = 1 
-    HEAL = 2
+    STR = 5 
+    HEAL = 1
     DEF = 0
     BLOCK = 3
     STAMINA = 0
+    EXP = 0
+    NEXT_LVL = 5
+    LVL = 0
     ABILITIES = ["ATTACK", "HEAL", "BLOCK"]
 
     def Stats(self):
-        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), STR: ({self.STR}), HEAL ({self.HEAL}), BLOCK ({self.DEF})")
+        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), STR: ({self.STR}), HEAL ({self.HEAL}), BLOCK ({self.DEF}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
     
     def Alive(self):
         if self.HP <= 0:
@@ -33,6 +37,7 @@ class Player:
             enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies)}): ", 0, len(enemies) + 1) - 1
             self.Attack(enemies[enemyToAttack])
             if enemies[enemyToAttack].HP <= 0:
+                player.ExpUp(enemies[enemyToAttack].EXP)
                 enemies.pop(enemyToAttack)
         elif move == "HEAL":
             if self.HP != self.MAX_HP and self.HP + self.HEAL < self.MAX_HP:
@@ -41,6 +46,13 @@ class Player:
                 self.HP = self.MAX_HP
         elif move == "BLOCK":
             self.DEF += self.BLOCK
+
+    def ExpUp(self, exp):
+        self.EXP += exp
+        while self.EXP >= self.NEXT_LVL:
+            self.EXP -= self.NEXT_LVL
+            self.LVL += 1
+            self.NEXT_LVL = int(self.NEXT_LVL ** 1.1)
 
     def Attack(self, enemy):
         if enemy.DEF:
@@ -54,6 +66,7 @@ player = Player()
 
 class Slime:
     TYPE = "slime"
+    EXP = 2
     MAX_HP = 5
     HP = 5
     STR = 1
@@ -80,7 +93,7 @@ class Slime:
 # ======================================
 
 
-enemeisPerFloor = [[1, 1, 1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
+enemeisPerFloor = [[1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 
 def generate_enemies(floor):
     xEnemies = rng.choice(enemeisPerFloor[floor])
@@ -94,7 +107,8 @@ def generate_enemies(floor):
 def Limit(question, Min, Max):
     while True:
         try:
-            value = int(input(question))
+            print(question)
+            value = int(getwch())
             if value > Min:
                 if value < Max:
                     return value
@@ -109,11 +123,14 @@ def GetEnemyStats():
     for enemy in stats:
         print(enemy)
 
-def playFloor(floor):
+def playFloor(floor, part):
     player.DEF = 0
     while True:
+        player.DEF -= player.DEF // 2 + 1
+        if player.DEF < 0:
+            player.DEF = 0
         if enemies:
-            print(f"Floor {floor + 1}")
+            print(f"Floor {floor + 1}-{part}")
             GetEnemyStats()
             player.Stats()
             player.Move()
@@ -129,5 +146,6 @@ def playFloor(floor):
 
 while True:
     for floor in range(5):
-        enemies = generate_enemies(floor)
-        playFloor(floor)
+        for part in range(10):
+            enemies = generate_enemies(floor)
+            playFloor(floor, part)
