@@ -1,6 +1,7 @@
 from os import system
 import random as rng
 from msvcrt import getwch
+from time import sleep
 
 system("cls")
 # ======================================
@@ -70,10 +71,12 @@ player = Player()
 
 class Slime:
     TYPE = "slime"
-    EXP = 1
-    MAX_HP = 5
-    HP = 5
-    STR = 1
+    def __init__(self, floor):
+        floor += 1
+        self.EXP = 1 * floor
+        self.MAX_HP = 5 * floor
+        self.HP = 5 * floor
+        self.STR = 1 * floor
     HEAL = 0
     DEF = 0
     BLOCK = 0
@@ -86,10 +89,12 @@ class Slime:
 
 class Rat:
     TYPE = "rat"
-    EXP = 2
-    MAX_HP = 5
-    HP = 5
-    STR = 2
+    def __init__(self, floor):
+        floor += 1
+        self.EXP = 2 * floor
+        self.MAX_HP = 5 * floor
+        self.HP = 5 * floor
+        self.STR = 2 * floor
     HEAL = 0
     DEF = 0
     BLOCK = 0
@@ -102,6 +107,8 @@ class Rat:
 
 class Boar:
     TYPE = "boar"
+    def __init__(self, floor):
+        floor += 1
     EXP = 5
     MAX_HP = 5
     HP = 5
@@ -138,7 +145,7 @@ def generate_enemies(floor):
     xEnemies = rng.choice(enemeisPerFloor[floor])
     enemies = []
     for i in range(xEnemies):
-        enemyTypeOnFloor = [[Slime(), Slime(), Rat()], [Slime(), Rat(), Rat()], [Slime(), Rat(), Boar()], [Rat(), Boar()], [Boar()]]
+        enemyTypeOnFloor = [[Slime(floor), Slime(floor), Rat(floor)], [Slime(floor), Rat(floor), Rat(floor)], [Slime(floor), Rat(floor), Boar(floor)], [Rat(floor), Boar(floor)], [Boar(floor)]]
         enemy = rng.choice(enemyTypeOnFloor[floor])
         enemies.append(enemy)
     return enemies
@@ -179,6 +186,7 @@ def playFloor(floor, part):
             player.Move()
 
             for enemy in enemies:
+                sleep(1)
                 enemy.Move()
 
             system("cls")
