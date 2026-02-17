@@ -10,7 +10,7 @@ system("cls")
 class Player:
     MAX_HP = 10
     HP = 10
-    STR = 5 
+    STR = 1
     HEAL = 1
     DEF = 0
     BLOCK = 3
@@ -51,13 +51,17 @@ class Player:
         while self.EXP >= self.NEXT_LVL:
             self.EXP -= self.NEXT_LVL
             self.LVL += 1
-            self.NEXT_LVL = int(self.NEXT_LVL ** 1.1)
+            self.NEXT_LVL += self.LVL
+            self.STR +=1
+            self.MAX_HP += 1
+            self.BLOCK += 1
+            self.HEAL += 1
 
 player = Player()
 
 class Slime:
     TYPE = "slime"
-    EXP = 2
+    EXP = 1
     MAX_HP = 5
     HP = 5
     STR = 1
@@ -65,10 +69,38 @@ class Slime:
     DEF = 0
     BLOCK = 0
     ABILITIES = ["ATTACK", "PASS", "PASS"]
+    
+    def Move(self):
+        enemyMove = rng.choice(self.ABILITIES)
+        if enemyMove == "ATTACK":
+            Attack(self, player)
 
-    def alive(self):
-        if self.HP <= 0:
-            print("slime died")
+class Rat:
+    TYPE = "rat"
+    EXP = 2
+    MAX_HP = 5
+    HP = 5
+    STR = 2
+    HEAL = 0
+    DEF = 0
+    BLOCK = 0
+    ABILITIES = ["ATTACK"]
+    
+    def Move(self):
+        enemyMove = rng.choice(self.ABILITIES)
+        if enemyMove == "ATTACK":
+            Attack(self, player)
+
+class Boar:
+    TYPE = "boar"
+    EXP = 5
+    MAX_HP = 5
+    HP = 5
+    STR = 1
+    HEAL = 0
+    DEF = 0
+    BLOCK = 0
+    ABILITIES = ["ATTACK", "ATTACK", "BLOCK", "PASS"]
     
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
@@ -88,16 +120,16 @@ def Attack(self, enemy):
     else:
         enemy.HP -= self.STR
 
-enemeisPerFloor = [[1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
+enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 
 def generate_enemies(floor):
     xEnemies = rng.choice(enemeisPerFloor[floor])
     enemies = []
     for i in range(xEnemies):
-        slime = Slime()
-        enemies.append(slime)
+        enemyTypeOnFloor = [[Slime(), Slime(), Rat()], [Slime(), Rat(), Rat()], [Slime(), Rat(), Boar()], [Rat(), Boar()], [Boar()]]
+        enemy = rng.choice(enemyTypeOnFloor[floor])
+        enemies.append(enemy)
     return enemies
-
 
 def Limit(question, Min, Max):
     while True:
@@ -129,7 +161,7 @@ def playFloor(floor, part):
         if player.DEF < 0:
             player.DEF = 0
         if enemies:
-            print(f"Floor {floor + 1}-{part}")
+            print(f"Floor {floor + 1}-{part + 1}")
             GetEnemyStats()
             player.Stats()
             player.Move()
