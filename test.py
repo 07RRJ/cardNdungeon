@@ -7,6 +7,10 @@ system("cls")
 # SECTION: BASE
 # ======================================
 
+class GameData:
+    def __init__(self):
+        pass
+
 class Player:
     MAX_HP = 10
     HP = 10
@@ -52,12 +56,17 @@ class Player:
             self.EXP -= self.NEXT_LVL
             self.LVL += 1
             self.NEXT_LVL += self.LVL
-            self.STR +=1
-            self.MAX_HP += 1
-            self.BLOCK += 1
-            self.HEAL += 1
+            if player.LVL % 2:
+                self.STR +=1
+                self.MAX_HP += 1
+                self.BLOCK += 1
+                self.HEAL += 1
 
 player = Player()
+
+# ======================================
+# SECTION: ENEMIES
+# ======================================
 
 class Slime:
     TYPE = "slime"
@@ -112,7 +121,10 @@ class Boar:
 # ======================================
 
 def Attack(self, enemy):
-    if enemy.DEF:
+    if self.STR >= enemy.DEF + enemy.HP:
+        enemy.DEF = 0
+        enemy.HP = 0
+    elif enemy.DEF:
         enemy.DEF -= self.STR
         if enemy.DEF < 0:
             enemy.HP -= enemy.DEF
