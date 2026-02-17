@@ -3,9 +3,8 @@ import random as rng
 from msvcrt import getwch
 
 system("cls")
-
 # ======================================
-# BASE
+# SECTION: BASE
 # ======================================
 
 class Player:
@@ -35,7 +34,7 @@ class Player:
         print(f"you chose: {move}")
         if move == "ATTACK":
             enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies)}): ", 0, len(enemies) + 1) - 1
-            self.Attack(enemies[enemyToAttack])
+            Attack(self, enemies[enemyToAttack])
             if enemies[enemyToAttack].HP <= 0:
                 player.ExpUp(enemies[enemyToAttack].EXP)
                 enemies.pop(enemyToAttack)
@@ -54,14 +53,6 @@ class Player:
             self.LVL += 1
             self.NEXT_LVL = int(self.NEXT_LVL ** 1.1)
 
-    def Attack(self, enemy):
-        if enemy.DEF:
-            enemy.DEF -= self.STR
-            if enemy.DEF < 0:
-                enemy.HP -= enemy.DEF
-                enemy.DEF = 0
-        else:
-            enemy.HP -= self.STR
 player = Player()
 
 class Slime:
@@ -79,19 +70,23 @@ class Slime:
         if self.HP <= 0:
             print("slime died")
     
-    def Attack(self, enemy):
-        if enemy.DEF:
-            enemy.DEF -= self.STR
-            if enemy.DEF < 0:
-                enemy.HP -= enemy.DEF
-                enemy.DEF = 0
-        else:
-            enemy.HP -= self.STR
+    def Move(self):
+        enemyMove = rng.choice(self.ABILITIES)
+        if enemyMove == "ATTACK":
+            Attack(self, player)
 
 # ======================================
-# INIT
+# SECTION: FUNCS
 # ======================================
 
+def Attack(self, enemy):
+    if enemy.DEF:
+        enemy.DEF -= self.STR
+        if enemy.DEF < 0:
+            enemy.HP -= enemy.DEF
+            enemy.DEF = 0
+    else:
+        enemy.HP -= self.STR
 
 enemeisPerFloor = [[1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 
@@ -123,6 +118,10 @@ def GetEnemyStats():
     for enemy in stats:
         print(enemy)
 
+# ======================================
+# SECTION: THE GAME LOOP STUFF
+# ======================================
+
 def playFloor(floor, part):
     player.DEF = 0
     while True:
@@ -136,9 +135,7 @@ def playFloor(floor, part):
             player.Move()
 
             for enemy in enemies:
-                enemyMove = rng.choice(enemy.ABILITIES)
-                if enemyMove == "ATTACK":
-                    enemy.Attack(player)
+                enemy.Move()
 
             system("cls")
         else:
