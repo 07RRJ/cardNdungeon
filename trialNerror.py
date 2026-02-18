@@ -19,12 +19,19 @@ from msvcrt import getwch
 # Posted by Juan Marín
 # Retrieved 2026-02-17, License - CC BY-SA 4.0
 
-import msvcrt
-import time
+# import msvcrt
+# import time
 
-# time.sleep(4)
-while True:
-    while msvcrt.kbhit():
-        flush = input()
-    entry = input("Press enter!")
-    print(entry)
+# # time.sleep(4)
+# while True:
+#     while msvcrt.kbhit():
+#         flush = input()
+#     entry = input("Press enter!")
+#     print(entry)
+
+# print(10 % 5)
+
+# DEF = 12
+# while DEF:
+#     print(DEF)
+#     DEF -= DEF // 2 + 1

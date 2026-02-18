@@ -89,9 +89,12 @@ class Enemies:
 
 class Slime:
     TYPE = "slime"
-    def __init__(self):
+    def __init__(self, summoned = False):
         floor = gameData.floor + 1
-        self.EXP = 1 * floor
+        if summoned:
+            self.EXP = 0
+        else:
+            self.EXP = 1 * floor
         self.MAX_HP = 5 * floor
         self.HP = 5 * floor
         self.STR = 1 * floor
@@ -128,13 +131,13 @@ class Boar:
     def __init__(self):
         floor = gameData.floor + 1
         self.EXP = 5 * floor
-        self.MAX_HP = 5 * floor
-        self.HP = 5 * floor
-        self.STR = 1 * floor
+        self.MAX_HP = 10 * floor
+        self.HP = 10 * floor
+        self.STR = 3 * floor
     HEAL = 0
     DEF = 0
     BLOCK = 0
-    ABILITIES = ["ATTACK", "ATTACK", "BLOCK", "PASS"]
+    ABILITIES = ["PASS", "BLOCK", "ATTACK"]
     
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
@@ -150,18 +153,28 @@ class KingSlime:
     def __init__(self):
         floor = gameData.floor + 1
         self.EXP = 20 * floor
-        self.MAX_HP = 40 * floor
-        self.HP = 40 * floor
+        self.MAX_HP = 50 * floor
+        self.HP = 50 * floor
         self.STR = 4 * floor
+        self.BLOCK = 10 * floor
+    MOVE = 0
     HEAL = 0
     DEF = 0
-    BLOCK = 0
-    ABILITIES = ["ATTACK", "ATTACK", "BLOCK", "PASS"]
+    ABILITIES = ["PASS", "BLOCK", "SUMMON"]
     
     def Move(self):
-        enemyMove = rng.choice(self.ABILITIES)
-        if enemyMove == "ATTACK":
-            Attack(self, player)
+        self.DEF -= self.DEF // 2 + 1
+        if self.DEF < 0:
+            self.DEF = 0
+        enemyMove = self.ABILITIES[self.MOVE]
+        if enemyMove == "BLOCK":
+            self.DEF += self.BLOCK
+        if enemyMove == "SUMMON":
+            slime = Slime(True)
+            enemies.current.append(slime)
+        self.MOVE += 1
+        if self.MOVE > len(self.ABILITIES) - 1:
+            self.MOVE = 0
 
 # ======================================
 # SECTION: FUNCS
@@ -237,8 +250,21 @@ def play():
                 if gameData.part < 9:
                     gameData.part += 1
                 else:
-                    gameData.part = 0
-                    gameData.floor += 1
+                    if gameData.floor % 5 == 0:
+                        kingSlime = KingSlime()
+                        enemies.current = [kingSlime]
+                        gameData.part = 0
+                        gameData.floor += 1
+                        result = playFloor()
+                        if result == "won":
+                            pass
+                        else:
+                            return "dead"
+                    else:
+                        gameData.part = 0
+                        gameData.floor += 1
+                    # elif gameData.floor % 5 == 1:
+                        # pass
             elif result == "dead":
                 return "dead"
         else:
