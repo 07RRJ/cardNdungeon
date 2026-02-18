@@ -133,16 +133,18 @@ class Boar:
         self.EXP = 5 * floor
         self.MAX_HP = 10 * floor
         self.HP = 10 * floor
-        self.STR = 3 * floor
+        self.STR = int(1.5 * floor)
+        self.BLOCK = 2 * floor
     HEAL = 0
     DEF = 0
-    BLOCK = 0
     ABILITIES = ["PASS", "BLOCK", "ATTACK"]
     
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
         if enemyMove == "ATTACK":
             Attack(self, player)
+        elif enemyMove == "BLOCK":
+            self.DEF += self.BLOCK
 
 # ======================================
 # SECTION: BOSSES
@@ -257,7 +259,6 @@ def play():
                         gameData.floor += 1
                         result = playFloor()
                         if result == "won":
-                            pass
                             gameData.part += 1
                         else:
                             return "dead"
