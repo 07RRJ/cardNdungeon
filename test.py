@@ -1,14 +1,21 @@
-from os import system
+import os, sys
 import random as rng
 from msvcrt import getwch
 from time import sleep
 
-system("cls")
 # ======================================
 # SECTION: BASE
 # ======================================
 
+def cls():
+    os.system("cls")
+
+def get_game_folder():
+    return getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+
 class GameData:
+    floor = 0
+    part = 0
     def __init__(self):
         pass
 
@@ -26,7 +33,7 @@ class Player:
     ABILITIES = ["ATTACK", "HEAL", "BLOCK"]
 
     def Stats(self):
-        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), STR: ({self.STR}), HEAL ({self.HEAL}), BLOCK ({self.DEF}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
+        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), STR: ({self.STR}), HEAL ({self.HEAL}), DEF ({self.BLOCK}), BLOCK ({self.DEF}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
     
     def Alive(self):
         if self.HP <= 0:
@@ -57,27 +64,33 @@ class Player:
             self.EXP -= self.NEXT_LVL
             self.LVL += 1
             self.NEXT_LVL += self.LVL
-            # if player.LVL % 2:
-            self.STR +=1
+            self.STR += 2
             self.MAX_HP += 1
             self.BLOCK += 1
             self.HEAL += 1
-
-player = Player()
 
 # ======================================
 # SECTION: ENEMIES
 # ======================================
 
+enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 class Enemies:
     current = []
     # def __init__(self):
-enemies = Enemies()
+    def generate(self):
+        if not self.current:
+            xEnemies = rng.choice(enemeisPerFloor[gameData.floor])
+            generatedEnemies = []
+            for i in range(xEnemies):
+                enemyTypeOnFloor = [[Slime(), Slime(), Slime(), Slime(), Rat()], [Slime(), Rat()], [Slime(), Rat(), Boar()], [Rat(), Boar()], [Boar()]]
+                enemy = rng.choice(enemyTypeOnFloor[gameData.floor])
+                generatedEnemies.append(enemy)
+            self.current = generatedEnemies
 
 class Slime:
     TYPE = "slime"
-    def __init__(self, floor):
-        floor += 1
+    def __init__(self):
+        floor = gameData.floor + 1
         self.EXP = 1 * floor
         self.MAX_HP = 5 * floor
         self.HP = 5 * floor
@@ -94,8 +107,8 @@ class Slime:
 
 class Rat:
     TYPE = "rat"
-    def __init__(self, floor):
-        floor += 1
+    def __init__(self):
+        floor = gameData.floor + 1
         self.EXP = 2 * floor
         self.MAX_HP = 5 * floor
         self.HP = 5 * floor
@@ -112,12 +125,34 @@ class Rat:
 
 class Boar:
     TYPE = "boar"
-    def __init__(self, floor):
-        floor += 1
+    def __init__(self):
+        floor = gameData.floor + 1
         self.EXP = 5 * floor
         self.MAX_HP = 5 * floor
         self.HP = 5 * floor
         self.STR = 1 * floor
+    HEAL = 0
+    DEF = 0
+    BLOCK = 0
+    ABILITIES = ["ATTACK", "ATTACK", "BLOCK", "PASS"]
+    
+    def Move(self):
+        enemyMove = rng.choice(self.ABILITIES)
+        if enemyMove == "ATTACK":
+            Attack(self, player)
+
+# ======================================
+# SECTION: BOSSES
+# ======================================
+
+class KingSlime:
+    TYPE = "kingslime"
+    def __init__(self):
+        floor = gameData.floor + 1
+        self.EXP = 20 * floor
+        self.MAX_HP = 40 * floor
+        self.HP = 40 * floor
+        self.STR = 4 * floor
     HEAL = 0
     DEF = 0
     BLOCK = 0
@@ -144,16 +179,6 @@ def Attack(self, enemy):
     else:
         enemy.HP -= self.STR
 
-enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
-
-def generate_enemies(floor):
-    xEnemies = rng.choice(enemeisPerFloor[floor])
-    generatedEnemies = []
-    for i in range(xEnemies):
-        enemyTypeOnFloor = [[Slime(floor), Slime(floor), Slime(floor), Slime(floor), Rat(floor)], [Slime(floor), Rat(floor)], [Slime(floor), Rat(floor), Boar(floor)], [Rat(floor), Boar(floor)], [Boar(floor)]]
-        enemy = rng.choice(enemyTypeOnFloor[floor])
-        generatedEnemies.append(enemy)
-    enemies.current = generatedEnemies
 
 def Limit(question, Min, Max):
     while True:
@@ -178,14 +203,14 @@ def GetEnemyStats():
 # SECTION: THE GAME LOOP STUFF
 # ======================================
 
-def playFloor(floor, part):
+def playFloor():
     player.DEF = 0
     while True:
         player.DEF -= player.DEF // 2 + 1
         if player.DEF < 0:
             player.DEF = 0
         if enemies.current and player.HP > 0:
-            print(f"Floor {floor + 1}-{part + 1}")
+            print(f"Floor {gameData.floor + 1}-{gameData.part + 1}")
             GetEnemyStats()
             player.Stats()
             player.Move()
@@ -194,7 +219,7 @@ def playFloor(floor, part):
                 # sleep(1)
                 enemy.Move()
 
-            system("cls")
+            cls()
         if not enemies.current:
             return "won"
         elif player.HP <= 0:
@@ -202,30 +227,33 @@ def playFloor(floor, part):
 
 runing = True
 
-while runing:
-    floor = 0
-    part = 0
+def play():
     result = ""
     while result != "dead":
-        generate_enemies(floor)
-        result = playFloor(floor, part)
-        if result == "won":
-            if part < 9:
-                part += 1
-            else:
-                part = 0
-                floor += 1
-                if floor > 5:
-                    runing = False
-                    break
-        elif result == "dead":
-            runing = False
-    print("stuck")
+        if gameData.floor < 5:
+            enemies.generate()
+            result = playFloor()
+            if result == "won":
+                if gameData.part < 9:
+                    gameData.part += 1
+                else:
+                    gameData.part = 0
+                    gameData.floor += 1
+            elif result == "dead":
+                return "dead"
+        else:
+            return "won"
 
-
-if floor > 5:
-    system("cls")
-    print("you won")
-else:
-    system("cls")
-    print("you died")
+while True:
+    cls()
+    player = Player()
+    enemies = Enemies()
+    gameData = GameData()
+    result = play()
+    if result == "won":
+        print("you won")
+    else:
+        print(f"you died, floor: ({gameData.floor + 1}-{gameData.part + 1})")
+    print("play again (y/n):")
+    while getwch().lower() != "y":
+        pass
