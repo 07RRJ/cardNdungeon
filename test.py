@@ -13,8 +13,8 @@ class GameData:
         pass
 
 class Player:
-    MAX_HP = 10
-    HP = 10
+    MAX_HP = 20
+    HP = 20
     STR = 1
     HEAL = 1
     DEF = 0
@@ -38,11 +38,11 @@ class Player:
         move = self.ABILITIES[Limit("your move: ", 0, len(self.ABILITIES) + 1) - 1]
         print(f"you chose: {move}")
         if move == "ATTACK":
-            enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies)}): ", 0, len(enemies) + 1) - 1
-            Attack(self, enemies[enemyToAttack])
-            if enemies[enemyToAttack].HP <= 0:
-                player.ExpUp(enemies[enemyToAttack].EXP)
-                enemies.pop(enemyToAttack)
+            enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies.current)}): ", 0, len(enemies.current) + 1) - 1
+            Attack(self, enemies.current[enemyToAttack])
+            if enemies.current[enemyToAttack].HP <= 0:
+                player.ExpUp(enemies.current[enemyToAttack].EXP)
+                enemies.current.pop(enemyToAttack)
         elif move == "HEAL":
             if self.HP != self.MAX_HP and self.HP + self.HEAL < self.MAX_HP:
                 self.HP += self.HEAL
@@ -57,17 +57,22 @@ class Player:
             self.EXP -= self.NEXT_LVL
             self.LVL += 1
             self.NEXT_LVL += self.LVL
-            if player.LVL % 2:
-                self.STR +=1
-                self.MAX_HP += 1
-                self.BLOCK += 1
-                self.HEAL += 1
+            # if player.LVL % 2:
+            self.STR +=1
+            self.MAX_HP += 1
+            self.BLOCK += 1
+            self.HEAL += 1
 
 player = Player()
 
 # ======================================
 # SECTION: ENEMIES
 # ======================================
+
+class Enemies:
+    current = []
+    # def __init__(self):
+enemies = Enemies()
 
 class Slime:
     TYPE = "slime"
@@ -109,10 +114,10 @@ class Boar:
     TYPE = "boar"
     def __init__(self, floor):
         floor += 1
-    EXP = 5
-    MAX_HP = 5
-    HP = 5
-    STR = 1
+        self.EXP = 5 * floor
+        self.MAX_HP = 5 * floor
+        self.HP = 5 * floor
+        self.STR = 1 * floor
     HEAL = 0
     DEF = 0
     BLOCK = 0
@@ -143,12 +148,12 @@ enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3
 
 def generate_enemies(floor):
     xEnemies = rng.choice(enemeisPerFloor[floor])
-    enemies = []
+    generatedEnemies = []
     for i in range(xEnemies):
-        enemyTypeOnFloor = [[Slime(floor), Slime(floor), Rat(floor)], [Slime(floor), Rat(floor), Rat(floor)], [Slime(floor), Rat(floor), Boar(floor)], [Rat(floor), Boar(floor)], [Boar(floor)]]
+        enemyTypeOnFloor = [[Slime(floor), Slime(floor), Slime(floor), Slime(floor), Rat(floor)], [Slime(floor), Rat(floor)], [Slime(floor), Rat(floor), Boar(floor)], [Rat(floor), Boar(floor)], [Boar(floor)]]
         enemy = rng.choice(enemyTypeOnFloor[floor])
-        enemies.append(enemy)
-    return enemies
+        generatedEnemies.append(enemy)
+    enemies.current = generatedEnemies
 
 def Limit(question, Min, Max):
     while True:
@@ -163,7 +168,7 @@ def Limit(question, Min, Max):
 
 def GetEnemyStats():
     stats = []
-    for idx, enemy in enumerate(enemies):
+    for idx, enemy in enumerate(enemies.current):
         stats.append(f"({idx + 1}){enemy.TYPE}, HP: ({enemy.HP}/{enemy.MAX_HP}), STR: {enemy.STR}")
     print("Enemies:")
     for enemy in stats:
@@ -179,22 +184,48 @@ def playFloor(floor, part):
         player.DEF -= player.DEF // 2 + 1
         if player.DEF < 0:
             player.DEF = 0
-        if enemies:
+        if enemies.current and player.HP > 0:
             print(f"Floor {floor + 1}-{part + 1}")
             GetEnemyStats()
             player.Stats()
             player.Move()
 
-            for enemy in enemies:
-                sleep(1)
+            for enemy in enemies.current:
+                # sleep(1)
                 enemy.Move()
 
             system("cls")
-        else:
-            break
+        if not enemies.current:
+            return "won"
+        elif player.HP <= 0:
+            return "dead"
 
-while True:
-    for floor in range(5):
-        for part in range(10):
-            enemies = generate_enemies(floor)
-            playFloor(floor, part)
+runing = True
+
+while runing:
+    floor = 0
+    part = 0
+    result = ""
+    while result != "dead":
+        generate_enemies(floor)
+        result = playFloor(floor, part)
+        if result == "won":
+            if part < 9:
+                part += 1
+            else:
+                part = 0
+                floor += 1
+                if floor > 5:
+                    runing = False
+                    break
+        elif result == "dead":
+            runing = False
+    print("stuck")
+
+
+if floor > 5:
+    system("cls")
+    print("you won")
+else:
+    system("cls")
+    print("you died")
