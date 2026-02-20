@@ -74,16 +74,23 @@ class Player:
 # ======================================
 
 enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
+enemyTypes = ["Slime", "Rat", "Boar"]
+
 class Enemies:
     current = []
-    # def __init__(self):
+    possible = ["Slime"]
     def generate(self):
         if not self.current:
             xEnemies = rng.choice(enemeisPerFloor[gameData.floor])
             generatedEnemies = []
             for i in range(xEnemies):
-                enemyTypeOnFloor = [[Slime(), Slime(), Slime(), Slime(), Rat()], [Slime(), Rat()], [Slime(), Rat(), Boar()], [Rat(), Boar()], [Boar()]]
-                enemy = rng.choice(enemyTypeOnFloor[gameData.floor])
+                enemy = rng.choice(self.possible)
+                if enemy == "Slime":
+                    enemy = Slime()
+                elif enemy == "Rat":
+                    enemy = Rat()
+                elif enemy == "Boar":
+                    enemy = Boar()
                 generatedEnemies.append(enemy)
             self.current = generatedEnemies
 
