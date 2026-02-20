@@ -29,7 +29,7 @@ from msvcrt import getwch
 #     entry = input("Press enter!")
 #     print(entry)
 
-# print(10 % 5)
+# print(9 % 5)
 
 # DEF = 12
 # while DEF:

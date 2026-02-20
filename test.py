@@ -31,15 +31,16 @@ class Player:
     NEXT_LVL = 5
     LVL = 0
     ABILITIES = ["ATTACK", "HEAL", "BLOCK"]
-
-    def Stats(self):
-        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), DEF ({self.DEF}/{self.BLOCK}), STR: ({self.STR}), HEAL ({self.HEAL}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
     
     def Alive(self):
         if self.HP <= 0:
             print("you died")
 
     def Move(self):
+        player.DEF -= player.DEF // 2 + 1
+        if player.DEF < 0:
+            player.DEF = 0
+        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), DEF ({self.DEF}/{self.BLOCK}), STR: ({self.STR}), HEAL ({self.HEAL}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
         for idx, move in enumerate(self.ABILITIES, 1):
             print(idx, move)
         move = self.ABILITIES[Limit("your move: ", 0, len(self.ABILITIES) + 1) - 1]
@@ -73,15 +74,16 @@ class Player:
 # SECTION: ENEMIES
 # ======================================
 
-enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
+# enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 enemyTypes = ["Slime", "Rat", "Boar"]
 
 class Enemies:
     current = []
     possible = ["Slime"]
+    amountEnemies = [1, 1]
     def generate(self):
         if not self.current:
-            xEnemies = rng.choice(enemeisPerFloor[gameData.floor])
+            xEnemies = rng.choice(rng.choice(self.amountEnemies))
             generatedEnemies = []
             for i in range(xEnemies):
                 enemy = rng.choice(self.possible)
@@ -228,13 +230,9 @@ def GetEnemyStats():
 def playFloor():
     player.DEF = 0
     while True:
-        player.DEF -= player.DEF // 2 + 1
-        if player.DEF < 0:
-            player.DEF = 0
         if enemies.current and player.HP > 0:
             print(f"Floor {gameData.floor + 1}-{gameData.part + 1}")
             GetEnemyStats()
-            player.Stats()
             player.Move()
 
             for enemy in enemies.current:
@@ -256,6 +254,8 @@ def play():
             enemies.generate()
             result = playFloor()
             if result == "won":
+                if gameData.part == 4:
+                    enemies.possible.append(rng.choice(enemyTypes))
                 if gameData.part < 9:
                     gameData.part += 1
                 else:
