@@ -14,27 +14,27 @@ def get_game_folder():
     return getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 
 class GameData:
-    floor = 0
-    visualF = 1
-    part = 0
-    visualP = 1
+    def __init__(self):
+        self.floor = 0
+        self.visualF = 1
+        self.part = 0
+        self.visualP = 1
+        self.turn = 0
 
 class Player:
-    MAX_HP = 20
-    HP = 20
-    STR = 1
-    HEAL = 1
-    DEF = 0
-    BLOCK = 3
-    STAMINA = 0
-    EXP = 0
-    NEXT_LVL = 5
-    LVL = 0
-    ABILITIES = ["ATTACK", "HEAL", "BLOCK"]
-    
-    def Alive(self):
-        if self.HP <= 0:
-            print("you died")
+    def __init__(self):
+        self.MAX_HP = 20
+        self.HP = 20
+        self.STR = 1
+        self.AOE = 1
+        self.HEAL = 1
+        self.DEF = 0
+        self.BLOCK = 3
+        self.STAMINA = 0
+        self.EXP = 0
+        self.NEXT_LVL = 5
+        self.LVL = 0
+        self.ABILITIES = ["ATTACK", "AOE", "HEAL", "BLOCK"]
 
     def Move(self):
         player.DEF -= player.DEF // 2 + 1
@@ -47,10 +47,32 @@ class Player:
         print(f"you chose: {move}")
         if move == "ATTACK":
             enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies.current)}): ", 0, len(enemies.current) + 1) - 1
-            Attack(self, enemies.current[enemyToAttack])
+            Attack(self.STR, enemies.current[enemyToAttack])
             if enemies.current[enemyToAttack].HP <= 0:
                 player.ExpUp(enemies.current[enemyToAttack].EXP)
                 enemies.current.pop(enemyToAttack)
+        elif move == "AOE":
+            enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies.current)}): ", 0, len(enemies.current) + 1) - 1
+            Attack(self.STR, enemies.current[enemyToAttack])
+            if enemies.current[enemyToAttack].HP <= 0:
+                player.ExpUp(enemies.current[enemyToAttack].EXP)
+                enemies.current.pop(enemyToAttack)
+            for i in range(self.AOE):
+                i += 1
+                try:
+                    Attack(self.STR // i, enemies.current[enemyToAttack - i])
+                    if enemies.current[enemyToAttack - 1].HP <= 0:
+                        player.ExpUp(enemies.current[enemyToAttack - 1].EXP)
+                        enemies.current.pop(enemyToAttack - 1)
+                except:
+                    pass
+                try:
+                    Attack(self.STR // i, enemies.current[enemyToAttack + i])
+                    if enemies.current[enemyToAttack + i].HP <= 0:
+                        player.ExpUp(enemies.current[enemyToAttack + 1].EXP)
+                        enemies.current.pop(enemyToAttack + 1)
+                except:
+                    pass
         elif move == "HEAL":
             if self.HP != self.MAX_HP and self.HP + self.HEAL < self.MAX_HP:
                 self.HP += self.HEAL
@@ -65,7 +87,7 @@ class Player:
             self.EXP -= self.NEXT_LVL
             self.LVL += 1
             self.NEXT_LVL += self.LVL
-            self.STR += 2
+            self.STR += 1
             self.MAX_HP += 1
             self.BLOCK += 1
             self.HEAL += 1
@@ -74,16 +96,17 @@ class Player:
 # SECTION: ENEMIES
 # ======================================
 
-# enemeisPerFloor = [[1, 1, 2], [2, 2, 2, 3], [2, 3, 3, 3, 3, 4], [3, 4, 4, 4], [3, 4, 4, 4, 4, 5]]
 enemyTypes = ["Slime", "Rat", "Boar"]
 
 class Enemies:
-    current = []
-    possible = ["Slime"]
-    amountEnemies = [1, 1]
+    def __init__(self):
+        self.current = []
+        self.possible = ["Slime"]
+        self.amountEnemies = [1, 1, 1]
+
     def generate(self):
         if not self.current:
-            xEnemies = rng.choice(rng.choice(self.amountEnemies))
+            xEnemies = rng.choice(self.amountEnemies)
             generatedEnemies = []
             for i in range(xEnemies):
                 enemy = rng.choice(self.possible)
@@ -95,6 +118,12 @@ class Enemies:
                     enemy = Boar()
                 generatedEnemies.append(enemy)
             self.current = generatedEnemies
+    
+    def difficultyUp(self):
+        self.amountEnemies[0] = self.amountEnemies[1]
+        self.amountEnemies[1] = self.amountEnemies[2]
+        self.amountEnemies[2] += 1
+        self.possible.append(rng.choice(enemyTypes))
 
 class Slime:
     TYPE = "slime"
@@ -110,12 +139,12 @@ class Slime:
     HEAL = 0
     DEF = 0
     BLOCK = 0
-    ABILITIES = ["ATTACK", "PASS", "PASS"]
+    ABILITIES = ["ATTACK", "ATTACK", "PASS", "PASS", "PASS"]
 
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
         if enemyMove == "ATTACK":
-            Attack(self, player)
+            Attack(self.STR, player)
 
 class Rat:
     TYPE = "rat"
@@ -133,25 +162,28 @@ class Rat:
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
         if enemyMove == "ATTACK":
-            Attack(self, player)
+            Attack(self.STR, player)
 
 class Boar:
     TYPE = "boar"
     def __init__(self):
         floor = gameData.floor + 1
-        self.EXP = 5 * floor
+        self.EXP = 2 * floor
         self.MAX_HP = 10 * floor
         self.HP = 10 * floor
         self.STR = int(1.5 * floor)
-        self.BLOCK = 2 * floor
+        self.BLOCK = 5 * floor
     HEAL = 0
     DEF = 0
     ABILITIES = ["PASS", "BLOCK", "ATTACK"]
     
     def Move(self):
+        self.DEF -= self.DEF // 2 + 1
+        if self.DEF < 0:
+            self.DEF = 0
         enemyMove = rng.choice(self.ABILITIES)
         if enemyMove == "ATTACK":
-            Attack(self, player)
+            Attack(self.STR, player)
         elif enemyMove == "BLOCK":
             self.DEF += self.BLOCK
 
@@ -163,11 +195,11 @@ class KingSlime:
     TYPE = "kingslime"
     def __init__(self):
         floor = gameData.floor + 1
-        self.EXP = 20 * floor
         self.MAX_HP = 50 * floor
         self.HP = 50 * floor
-        self.STR = 4 * floor
         self.BLOCK = 10 * floor
+    STR = 0
+    EXP =  0
     MOVE = 0
     HEAL = 0
     DEF = 0
@@ -191,17 +223,17 @@ class KingSlime:
 # SECTION: FUNCS
 # ======================================
 
-def Attack(self, enemy):
-    if self.STR >= enemy.DEF + enemy.HP:
+def Attack(STR, enemy):
+    if STR >= enemy.DEF + enemy.HP:
         enemy.DEF = 0
         enemy.HP = 0
     elif enemy.DEF:
-        enemy.DEF -= self.STR
+        enemy.DEF -= STR
         if enemy.DEF < 0:
             enemy.HP += enemy.DEF
             enemy.DEF = 0
     else:
-        enemy.HP -= self.STR
+        enemy.HP -= STR
 
 
 def Limit(question, Min, Max):
@@ -229,9 +261,11 @@ def GetEnemyStats():
 
 def playFloor():
     player.DEF = 0
+    gameData.turn = 0
     while True:
         if enemies.current and player.HP > 0:
-            print(f"Floor {gameData.floor + 1}-{gameData.part + 1}")
+            gameData.turn += 1
+            print(f"Floor {gameData.floor + 1}-{gameData.part + 1}, Turn: ({gameData.turn})")
             GetEnemyStats()
             player.Move()
 
@@ -255,7 +289,7 @@ def play():
             result = playFloor()
             if result == "won":
                 if gameData.part == 4:
-                    enemies.possible.append(rng.choice(enemyTypes))
+                    enemies.difficultyUp()
                 if gameData.part < 9:
                     gameData.part += 1
                 else:
