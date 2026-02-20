@@ -15,9 +15,9 @@ def get_game_folder():
 
 class GameData:
     floor = 0
+    visualF = 1
     part = 0
-    def __init__(self):
-        pass
+    visualP = 1
 
 class Player:
     MAX_HP = 20
@@ -33,7 +33,7 @@ class Player:
     ABILITIES = ["ATTACK", "HEAL", "BLOCK"]
 
     def Stats(self):
-        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), STR: ({self.STR}), HEAL ({self.HEAL}), DEF ({self.BLOCK}), BLOCK ({self.DEF}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
+        print(f"Player:\nHP: ({self.HP}/{self.MAX_HP}), DEF ({self.DEF}/{self.BLOCK}), STR: ({self.STR}), HEAL ({self.HEAL}), LVL ({self.LVL}), EXP ({self.EXP}/{self.NEXT_LVL})")
     
     def Alive(self):
         if self.HP <= 0:
@@ -109,7 +109,7 @@ class Slime:
     DEF = 0
     BLOCK = 0
     ABILITIES = ["ATTACK", "PASS", "PASS"]
-    
+
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
         if enemyMove == "ATTACK":
@@ -140,16 +140,18 @@ class Boar:
         self.EXP = 5 * floor
         self.MAX_HP = 10 * floor
         self.HP = 10 * floor
-        self.STR = 3 * floor
+        self.STR = int(1.5 * floor)
+        self.BLOCK = 2 * floor
     HEAL = 0
     DEF = 0
-    BLOCK = 0
     ABILITIES = ["PASS", "BLOCK", "ATTACK"]
     
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
         if enemyMove == "ATTACK":
             Attack(self, player)
+        elif enemyMove == "BLOCK":
+            self.DEF += self.BLOCK
 
 # ======================================
 # SECTION: BOSSES
@@ -167,7 +169,7 @@ class KingSlime:
     MOVE = 0
     HEAL = 0
     DEF = 0
-    ABILITIES = ["PASS", "BLOCK", "SUMMON"]
+    ABILITIES = ["SUMMON", "BLOCK", "PASS"]
     
     def Move(self):
         self.DEF -= self.DEF // 2 + 1
@@ -194,7 +196,7 @@ def Attack(self, enemy):
     elif enemy.DEF:
         enemy.DEF -= self.STR
         if enemy.DEF < 0:
-            enemy.HP -= enemy.DEF
+            enemy.HP += enemy.DEF
             enemy.DEF = 0
     else:
         enemy.HP -= self.STR
@@ -214,7 +216,7 @@ def Limit(question, Min, Max):
 def GetEnemyStats():
     stats = []
     for idx, enemy in enumerate(enemies.current):
-        stats.append(f"({idx + 1}){enemy.TYPE}, HP: ({enemy.HP}/{enemy.MAX_HP}), STR: {enemy.STR}")
+        stats.append(f"({idx + 1}){enemy.TYPE}, HP: ({enemy.HP}/{enemy.MAX_HP}), DEF: ({enemy.DEF}/{enemy.BLOCK}), STR: {enemy.STR}")
     print("Enemies:")
     for enemy in stats:
         print(enemy)
@@ -260,11 +262,11 @@ def play():
                     if gameData.floor % 5 == 0:
                         kingSlime = KingSlime()
                         enemies.current = [kingSlime]
-                        gameData.part = 0
+                        gameData.part = -1
                         gameData.floor += 1
                         result = playFloor()
                         if result == "won":
-                            pass
+                            gameData.part += 1
                         else:
                             return "dead"
                     else:
