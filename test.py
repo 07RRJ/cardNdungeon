@@ -54,25 +54,20 @@ class Player:
         elif move == "AOE":
             enemyToAttack = Limit(f"Enemy to attack (1 - {len(enemies.current)}): ", 0, len(enemies.current) + 1) - 1
             Attack(self.STR, enemies.current[enemyToAttack])
-            if enemies.current[enemyToAttack].HP <= 0:
-                player.ExpUp(enemies.current[enemyToAttack].EXP)
-                enemies.current.pop(enemyToAttack)
             for i in range(self.AOE):
                 i += 1
                 try:
                     Attack(self.STR // i, enemies.current[enemyToAttack - i])
-                    if enemies.current[enemyToAttack - 1].HP <= 0:
-                        player.ExpUp(enemies.current[enemyToAttack - 1].EXP)
-                        enemies.current.pop(enemyToAttack - 1)
                 except:
                     pass
                 try:
                     Attack(self.STR // i, enemies.current[enemyToAttack + i])
-                    if enemies.current[enemyToAttack + i].HP <= 0:
-                        player.ExpUp(enemies.current[enemyToAttack + 1].EXP)
-                        enemies.current.pop(enemyToAttack + 1)
                 except:
                     pass
+                for idx, enemy in enumerate(enemies.current):
+                    if enemy.HP <= 0:
+                        player.ExpUp(enemy.EXP)
+                        enemies.current.pop(idx)
         elif move == "HEAL":
             if self.HP != self.MAX_HP and self.HP + self.HEAL < self.MAX_HP:
                 self.HP += self.HEAL
@@ -139,7 +134,7 @@ class Slime:
     HEAL = 0
     DEF = 0
     BLOCK = 0
-    ABILITIES = ["ATTACK", "ATTACK", "PASS", "PASS", "PASS"]
+    ABILITIES = ["ATTACK", "PASS"]
 
     def Move(self):
         enemyMove = rng.choice(self.ABILITIES)
