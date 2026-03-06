@@ -19,8 +19,8 @@ class GameData:
         self.part = 1
         self.turn = 0
         self.enemiesKilled = {
-            "King Slime": 0, "Rat King": 0, "Royal Boar": 0, "Goblin General": 0, "Lich": 0,
             "Slime": 0, "Rat": 0, "Boar": 0, "Goblin": 0, "Zombie": 0,
+            "King Slime": 0, "Rat King": 0, "Royal Boar": 0, "Goblin General": 0, "Lich": 0
         }
 
 class Player:
@@ -534,7 +534,11 @@ while True:
     if result == "won":
         print("you won")
     else:
-        print(f"you died, floor: ({gameData.floor}-{gameData.part})\nEnemies killed: {"\n".join(zip(gameData.enemiesKilled, gameData.enemiesKilled.values))}")
+        print(f"you died, floor: ({gameData.floor}-{gameData.part})\nEnemies killed:")
+        print("=" * 22)
+        for enemy in gameData.enemiesKilled:
+            print(f"- {enemy:<15}: {gameData.enemiesKilled[enemy]}")
+        print("=" * 22)
     print("play again (y/n):")
     while getwch().lower() != "y":
         pass
