@@ -18,6 +18,10 @@ class GameData:
         self.floor = 1
         self.part = 1
         self.turn = 0
+        self.enemiesKilled = {
+            "King Slime": 0, "Rat King": 0, "Royal Boar": 0, "Goblin General": 0, "Lich": 0,
+            "Slime": 0, "Rat": 0, "Boar": 0, "Goblin": 0, "Zombie": 0,
+        }
 
 class Player:
     def __init__(self):
@@ -159,6 +163,7 @@ class Enemies:
             for idx, enemy in enumerate(self.current):
                 if enemy.HP <= 0:
                     player.ExpUp(enemy.EXP)
+                    gameData.enemiesKilled[enemy.TYPE] += 1
                     self.current.pop(idx)
     
     def difficultyUp(self):
@@ -286,8 +291,8 @@ class KingSlime:
         self.MAX_HP = 50 * multi
         self.HP = 50 * multi
         self.BLOCK = 10 * multi
+        self.EXP =  20 * multi
     STR = 0
-    EXP =  0
     MOVE = 0
     HEAL = 0
     DEF = 0
@@ -529,7 +534,7 @@ while True:
     if result == "won":
         print("you won")
     else:
-        print(f"you died, floor: ({gameData.floor}-{gameData.part})")
+        print(f"you died, floor: ({gameData.floor}-{gameData.part})\nEnemies killed: {"\n".join(zip(gameData.enemiesKilled, gameData.enemiesKilled.values))}")
     print("play again (y/n):")
     while getwch().lower() != "y":
         pass
